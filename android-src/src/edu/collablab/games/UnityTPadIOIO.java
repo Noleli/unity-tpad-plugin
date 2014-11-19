@@ -42,15 +42,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.dropbox.client2.DropboxAPI;
-import com.dropbox.client2.DropboxAPI.DropboxFileInfo;
-import com.dropbox.client2.DropboxAPI.Entry;
-import com.dropbox.client2.android.AndroidAuthSession;
-import com.dropbox.client2.android.AuthActivity;
-import com.dropbox.client2.exception.DropboxException;
-import com.dropbox.client2.session.AccessTokenPair;
-import com.dropbox.client2.session.AppKeyPair;
-import com.dropbox.client2.session.Session.AccessType;
 import com.unity3d.player.UnityPlayerNativeActivity;
 
 import ioio.lib.util.IOIOLooper;
@@ -69,20 +60,6 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 	static File logFile;
 	static FileWriter fw;
 	long starttime;
-	final static private String APP_KEY = "oyg9oxn75h2w0te";
-	final static private String APP_SECRET = "k59ufleep6rfvu3";
-	final static private AccessType ACCESS_TYPE = AccessType.DROPBOX;
-	
-	// You don't need to change these, leave them alone.
-    final static private String ACCOUNT_PREFS_NAME = "prefs";
-    final static private String ACCESS_KEY_NAME = "ACCESS_KEY";
-    final static private String ACCESS_SECRET_NAME = "ACCESS_SECRET";
-
-    private static final boolean USE_OAUTH1 = false;
-	
-	private DropboxAPI<AndroidAuthSession> mDBApi;
-	
-	private boolean mLoggedIn;
 	
 	private final IOIOAndroidApplicationHelper helper_ = new IOIOAndroidApplicationHelper(
 			this, this);
@@ -132,22 +109,6 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 		helper_.create();
 		
 		logFile = createFile();
-		
-//		AppKeyPair appKeys = new AppKeyPair(APP_KEY, APP_SECRET);
-		//AndroidAuthSession session = new AndroidAuthSession(appKeys, ACCESS_TYPE);
-		AndroidAuthSession session = buildSession();
-//        mApi = new DropboxAPI<AndroidAuthSession>(session);
-		mDBApi = new DropboxAPI<AndroidAuthSession>(session);
-//		mDBApi.getSession().startOAuth2Authentication(UnityTPadIOIO.this);
-		checkAppKeySetup();
-		if(!mLoggedIn) {
-			mDBApi.getSession().startOAuth2Authentication(UnityTPadIOIO.this);
-		}
-		mLoggedIn = session.isLinked();
-		
-		// token: v8iXf5j2SaIAAAAAAABLK5PB6Y5Wqt-joe9tp0ZoM9b8rZ0SJ_RPm6u2O97_JTIZ
-//		AndroidAuthSession session = new AndroidAuthSession(
-//			     myAppKeys, myAccessType, new AccessTokenPair(storedAccessKey, storedAccessSecret));
 		
 		starttime = System.currentTimeMillis();
 		gameState = "";
@@ -205,6 +166,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 	
 	public void setTexture(String textureName) {
 		texturebmp = textures[Arrays.binarySearch(textureNames, textureName)];
+		writeToLog("texturechange," + textureName);
 //		writeToLog("texturechange," + textureName);
 		
 		//if(texturebmp != null) texturebmp.recycle();
@@ -449,21 +411,6 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 	protected void onResume() {
 	    super.onResume();
 
-	    AndroidAuthSession session = mDBApi.getSession();
-	    if (session.authenticationSuccessful()) {
-	        try {
-	            // Required to complete auth, sets the access token on the session
-	            session.finishAuthentication();
-	            
-	            storeAuth(session);
-	            mLoggedIn = true;
-
-	            //String accessToken = mDBApi.getSession().getOAuth2AccessToken();
-	            //Log.i("Dropbox", accessToken);
-	        } catch (IllegalStateException e) {
-	            Log.i("DbAuthLog", "Error authenticating", e);
-	        }
-	    }
 	}
 	
 
@@ -527,87 +474,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 	
 	
 	
-	private void checkAppKeySetup() {
-        // Check to make sure that we have a valid app key
-        if (APP_KEY.startsWith("CHANGE") ||
-                APP_SECRET.startsWith("CHANGE")) {
-            Log.i("Dropbox","You must apply for an app key and secret from developers.dropbox.com, and add them to the DBRoulette ap before trying it.");
-            finish();
-            return;
-        }
-
-        // Check if the app has set up its manifest properly.
-        Intent testIntent = new Intent(Intent.ACTION_VIEW);
-        String scheme = "db-" + APP_KEY;
-        String uri = scheme + "://" + AuthActivity.AUTH_VERSION + "/test";
-        testIntent.setData(Uri.parse(uri));
-        PackageManager pm = getPackageManager();
-        if (0 == pm.queryIntentActivities(testIntent, 0).size()) {
-            Log.i("Dropbox","URL scheme in your app's " +
-                    "manifest is not set up correctly. You should have a " +
-                    "com.dropbox.client2.android.AuthActivity with the " +
-                    "scheme: " + scheme);
-            finish();
-        }
-    }
 	
-	private AndroidAuthSession buildSession() {
-        AppKeyPair appKeyPair = new AppKeyPair(APP_KEY, APP_SECRET);
-
-        AndroidAuthSession session = new AndroidAuthSession(appKeyPair);
-        loadAuth(session);
-        return session;
-    }
-	
-	/**
-     * Shows keeping the access keys returned from Trusted Authenticator in a local
-     * store, rather than storing user name & password, and re-authenticating each
-     * time (which is not to be done, ever).
-     */
-    private void loadAuth(AndroidAuthSession session) {
-        SharedPreferences prefs = getSharedPreferences(ACCOUNT_PREFS_NAME, 0);
-        String key = prefs.getString(ACCESS_KEY_NAME, null);
-        String secret = prefs.getString(ACCESS_SECRET_NAME, null);
-        if (key == null || secret == null || key.length() == 0 || secret.length() == 0) return;
-
-        if (key.equals("oauth2:")) {
-            // If the key is set to "oauth2:", then we can assume the token is for OAuth 2.
-            session.setOAuth2AccessToken(secret);
-        } else {
-            // Still support using old OAuth 1 tokens.
-            session.setAccessTokenPair(new AccessTokenPair(key, secret));
-        }
-        mLoggedIn = session.isLinked();
-    }
-    
-    /**
-     * Shows keeping the access keys returned from Trusted Authenticator in a local
-     * store, rather than storing user name & password, and re-authenticating each
-     * time (which is not to be done, ever).
-     */
-    private void storeAuth(AndroidAuthSession session) {
-        // Store the OAuth 2 access token, if there is one.
-        String oauth2AccessToken = session.getOAuth2AccessToken();
-        if (oauth2AccessToken != null) {
-            SharedPreferences prefs = getSharedPreferences(ACCOUNT_PREFS_NAME, 0);
-            Editor edit = prefs.edit();
-            edit.putString(ACCESS_KEY_NAME, "oauth2:");
-            edit.putString(ACCESS_SECRET_NAME, oauth2AccessToken);
-            edit.commit();
-            return;
-        }
-        // Store the OAuth 1 access token, if there is one.  This is only necessary if
-        // you're still using OAuth 1.
-        AccessTokenPair oauth1AccessToken = session.getAccessTokenPair();
-        if (oauth1AccessToken != null) {
-            SharedPreferences prefs = getSharedPreferences(ACCOUNT_PREFS_NAME, 0);
-            Editor edit = prefs.edit();
-            edit.putString(ACCESS_KEY_NAME, oauth1AccessToken.key);
-            edit.putString(ACCESS_SECRET_NAME, oauth1AccessToken.secret);
-            edit.commit();
-            return;
-        }
-    }
     
     private String readFile(String pathname) throws IOException {
 
@@ -626,71 +493,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
         }
     }
 	
-	public int getPlan() {
-		String str = "";
-		File file = null;
-		FileOutputStream outputStream = null;
-		Log.i("Dropbox", "uid: " + uid);
-		try {
-			String file_path = Environment.getExternalStorageDirectory().getPath() + "/plans";
-		    file = new File(file_path); // + uid + ".csv");
-			if(!file.exists()) {
-				file.mkdirs();
-			}
-			file = new File(file_path, uid + ".csv");
-		    Boolean created = file.createNewFile();
-		    // Log.i("Dropbox", created.toString());
-		    outputStream = new FileOutputStream(file);
-		    DropboxFileInfo info = mDBApi.getFile("/TPad Logs/plans/" + uid + ".csv", null, outputStream, null);
-		} catch (Exception e) {
-		    System.out.println("Something went wrong: " + e);
-		    return 1;
-		} finally {
-		    if (outputStream != null) {
-		    	// Log.i("Dropbox", "gets here");
-		        try {
-		            outputStream.close();
-//		            FileReader fr = new FileReader(file);
-//		            char[] buffer = {};
-//		            fr.read(buffer);
-//		            fr.close();
-//		            // file.delete();
-//		            Log.i("Dropbox", buffer.toString());
-//		            str = new String(buffer);
-		            
-		            str = readFile(file.getPath());
-		            file.delete();
-		            Log.i("Dropbox", str);
-//		    		return str;
-		        } catch (Exception e) {
-		        	System.out.println("Gah! " + e);
-		        	return 1;
-		        }
-		    }
-		}
-		Log.i("Dropbox", "File len: " + str.length());
-		plan = str;
-
-		if(str.length() > 247) return 1;
-		else return 0;
-
-		
-		
-		
-//		File file = new File("/plans/" + uid + ".csv");
-//		FileOutputStream outputStream = new FileOutputStream(file);
-//		DropboxFileInfo info = mDBApi.getFile("/plans/" + uid + ".csv", null, outputStream, null);
-//		FileReader fr = new FileReader(file);
-//		String str = fr.toString();
-//		try {
-//			fr.close();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		Log.i("Dropbox", str);
-//		return str;
-	}
+	
 	
 	public File createFile() {
 
@@ -726,26 +529,6 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 		return saveFile;
 	}
 	
-	public void saveToDB() {
-		FileInputStream inputStream;
-		if(mLoggedIn) {
-			try {
-				inputStream = new FileInputStream(logFile);
-				try {
-						// logFile.getName()
-						Entry response = mDBApi.putFile("/TPad Logs/logs/" + uid + ".csv", inputStream,
-						                                logFile.length(), null, null);
-					} catch (DropboxException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-		
-	}
 	
 	public void writeToLog(String msg) {
 		

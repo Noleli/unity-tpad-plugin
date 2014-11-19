@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry kind="lib" path="/IOIOLibAndroid/bin/ioiolibandroid.jar"/>
 	<classpathentry kind="lib" path="/Applications/Unity/Unity.app/Contents/PlaybackEngines/AndroidPlayer/bin/classes.jar"/>
-	<classpathentry kind="lib" path="/TPadIOIOLib/bin/tpadioiolib.jar"/>
-	<classpathentry kind="lib" path="/Users/noah/Dropbox/School/Projects/TPaD/code/dropbox-android-sdk-1.6.1/lib/dropbox-android-sdk-1.6.1.jar" sourcepath="/Users/noah/Dropbox/School/Projects/TPaD/code/dropbox-android-sdk-1.6.1.zip"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="gen"/>
+	<classpathentry kind="lib" path="/Users/noah/Dropbox/School/Projects/TPaD/code/Nexus 7 TPadSoftware/ioio-master/software/IOIOLib/target/android/bin/ioiolibandroid.jar"/>
+	<classpathentry kind="lib" path="/Users/noah/Dropbox/School/Projects/TPaD/code/Nexus 7 TPadSoftware/TPadIOIOLib/bin/tpadioiolib.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
