@@ -1,16 +1,8 @@
 package edu.collablab.games;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Scanner;
 
 //import net.noleli.texturechange.R;
@@ -36,11 +28,7 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.unity3d.player.UnityPlayerNativeActivity;
 
@@ -52,15 +40,6 @@ import ioio.lib.util.android.IOIOAndroidApplicationHelper;
 public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLooperProvider {
 	public static Context ctx;
 	
-	public static String gameState;
-
-	public int uid = 0;
-	public String plan = "";
-	
-	static File logFile;
-	static FileWriter fw;
-	long starttime;
-	
 	private final IOIOAndroidApplicationHelper helper_ = new IOIOAndroidApplicationHelper(
 			this, this);
 	
@@ -71,14 +50,10 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 //	private float bx, by;
 	Bitmap texturebmp;
 	
-	int bmpIter;
-	String textureNames[] = {"black", "narrowstripes"}; // {"fullscreen_horizontal_3", "fullscreen_horizontal_2"};
+//	int bmpIter;
+//	String textureNames[] = {"black", "narrowstripes"}; // {"fullscreen_horizontal_3", "fullscreen_horizontal_2"};
 	//int bmpIds[] = new int[textureNames.length];
-	Bitmap textures[] = new Bitmap[textureNames.length];
-	
-	int visIter;
-	String visualNotificationNames[] = {"clear", "glow"};
-	Bitmap backgrounds[] = new Bitmap[visualNotificationNames.length];
+//	Bitmap textures[] = new Bitmap[textureNames.length];
 	
 	public float[] hsv = new float[3];
 	
@@ -89,11 +64,6 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 	private int height = 736;*/
 	
 	FrameLayout mFrameLayout;
-	ImageView mImageView; // = new ImageView(this);
-	ImageButton mButton;
-	int buttonVisState;
-	
-	public boolean buttonPressed;
 
 //	public final int redHue;
 //	public final int blueHue;
@@ -108,41 +78,28 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 		super.onCreate(savedInstanceState);
 		helper_.create();
 		
-		logFile = createFile();
 		
-		starttime = System.currentTimeMillis();
-		gameState = "";
-		
-		for(int i = 0; i < textureNames.length; i++) {
+		/*for(int i = 0; i < textureNames.length; i++) {
 			Log.i("UnityTPadIOIO", "Setting up " + textureNames[i]);
 			
 			int bmpId = getResources().getIdentifier(textureNames[i], "drawable", getPackageName());
 			textures[i] = BitmapFactory.decodeResource(getResources(), bmpId);
 		}
-		for(int i = 0; i < visualNotificationNames.length; i++) {
-			Log.i("UnityTPadIOIO", "Setting up " + visualNotificationNames[i]);
-			
-			int bmpId = getResources().getIdentifier(visualNotificationNames[i], "drawable", getPackageName());
-			backgrounds[i] = BitmapFactory.decodeResource(getResources(), bmpId);
-		}
-		bmpIter = 0;
+		bmpIter = 0;*/
 //		texturebmp = BitmapFactory.decodeResource(getResources(), bmpIds[bmpIter]);
-		setTexture("black");
+		
 		
 		/*myBackgroundBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		myBackgroundCanvas = new Canvas(myBackgroundBitmap);*/
 		
+		// not sure this is necessary, but.
 		int layoutID = getResources().getIdentifier("layout", "layout", getPackageName());
 		FrameLayout layout = (FrameLayout) LayoutInflater.from(this).inflate(layoutID, null);
-	    int imageViewId = getResources().getIdentifier("imageView", "id", getPackageName());
-	    mImageView = (ImageView) layout.findViewById(imageViewId);
 	    addContentView(layout, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
-	    int buttonId = getResources().getIdentifier("keyButton", "id", getPackageName());
-	    mButton = (ImageButton) findViewById(buttonId);
-
+	    
 		
-		setBackgroundImage("clear");
+		
 		
 		
 		
@@ -152,41 +109,43 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 		
 	}
 	
-	public void changeTexture() {
+	/*public void changeTexture() {
 		/*texturebmp.recycle();
 		bmpIter = (bmpIter + 1) % bmpIds.length;
 		texturebmp = BitmapFactory.decodeResource(getResources(), bmpIds[bmpIter]);
 		Log.i("UnityTPadIOIO", "Texture changed: " + textureNames[bmpIter]);
-		writeToLog("texturechange," + textureNames[bmpIter]);*/
+		writeToLog("texturechange," + textureNames[bmpIter]);* /
 		
 		bmpIter = (bmpIter + 1) % textureNames.length;
 		texturebmp = textures[bmpIter];
 //		writeToLog("texturechange," + textureNames[bmpIter]);
-	}
+	}*/
 	
 	public void setTexture(String textureName) {
-		texturebmp = textures[Arrays.binarySearch(textureNames, textureName)];
-		writeToLog("texturechange," + textureName);
+//		texturebmp = textures[Arrays.binarySearch(textureNames, textureName)];
+		Log.i("Logging", "texturechange," + textureName);
 //		writeToLog("texturechange," + textureName);
 		
-		//if(texturebmp != null) texturebmp.recycle();
-		/*int bmpId;
+//		if(texturebmp != null) texturebmp.recycle();
+		int bmpId;
 		bmpId = getResources().getIdentifier(textureName, "drawable", getPackageName());
-		Bitmap newbmp = BitmapFactory.decodeResource(getResources(), bmpId);
-		if(newbmp != texturebmp) {
-			texturebmp.recycle();
+		Log.i("Bitmap", String.valueOf(bmpId));
+//		Bitmap newbmp = BitmapFactory.decodeResource(getResources(), bmpId);
+		texturebmp = BitmapFactory.decodeResource(getResources(), bmpId);
+		/*if(newbmp != texturebmp) {
+//			texturebmp.recycle();
 			texturebmp = newbmp;
 
-			writeToLog("texturechange," + textureName);
+//			writeToLog("texturechange," + textureName);
 		}
 		newbmp.recycle();*/
 //		texturebmp = BitmapFactory.decodeResource(getResources(), bmpId);
 	}
 	
-	public void changeVisual() {
-		/*visIter = (visIter + 1) % visualNotificationNames.length;
-		setBackgroundImage(visualNotificationNames[visIter]);
-		writeToLog("vischange," + visualNotificationNames[visIter]);*/
+	/*public void changeVisual() {
+//		visIter = (visIter + 1) % visualNotificationNames.length;
+//		setBackgroundImage(visualNotificationNames[visIter]);
+//		writeToLog("vischange," + visualNotificationNames[visIter]);
 		visIter = (visIter + 1) % visualNotificationNames.length;
 		runOnUiThread(changeVisualRunner);
 	}
@@ -208,43 +167,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 		visIter = Arrays.binarySearch(visualNotificationNames, imageName);
 		runOnUiThread(changeVisualRunner);
 //		mImageView.setImageBitmap(backgrounds[Arrays.binarySearch(visualNotificationNames, imageName)]); // Resource(bmpId);
-	}
-	
-	public void buttonPress(View view) {
-		writeToLog("buttonpress");
-		buttonPressed = true;
-	}
-
-	Runnable buttonVisRunner = new Runnable() {
-		@Override
-		public void run() {
-			mButton.setVisibility(buttonVisState);
-		}
-	};
-
-	public void hideButton() {
-		buttonVisState = View.GONE;
-		runOnUiThread(buttonVisRunner);
-		// mButton.setVisibility(View.GONE);
-	}
-
-	public void showButton() {
-		buttonVisState = View.VISIBLE;
-		runOnUiThread(buttonVisRunner);
-	}
-	
-	public void setButtonPressed(boolean b) {
-		buttonPressed = b;
-	}
-	
-	public boolean getButtonPressed() {
-		return buttonPressed;
-	}
-	
-	public void newLogFile() {
-		// saveToDB();
-		logFile = createFile();
-	}
+	}*/
 	
 	// Handling touch events
 	//@Override
@@ -281,7 +204,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 			// Call the timeout timer
 			touchTimer = System.nanoTime();
 			
-			writeToLog("TouchDown", px + "," + py);
+			Log.i("Logging", "TouchDown," + px + "," + py);
 
 			// Set touching to true
 			isTouching = true;
@@ -332,7 +255,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 			
 			
 			
-			writeToLog("TouchMove", px + "," + py);
+			Log.i("Logging","TouchMove," + px + "," + py);
 
 			touchTimer = System.nanoTime();
 
@@ -344,7 +267,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 			touchTimer = System.nanoTime();
 			tpadhelper.sendTPad(0f);
 			
-			writeToLog("TouchUp", event.getX() + "," + event.getY());
+			Log.i("Logging","TouchUp," + event.getX() + "," + event.getY());
 			break;
 
 		case MotionEvent.ACTION_CANCEL:
@@ -416,7 +339,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 
 	@Override
 	protected void onDestroy() {
-		MediaScannerConnection.scanFile(this, new String[] { logFile.getAbsolutePath() }, null, null);
+//		MediaScannerConnection.scanFile(this, new String[] { logFile.getAbsolutePath() }, null, null);
 		//saveToDB();
 
 		helper_.destroy();
@@ -431,7 +354,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 
 	@Override
 	protected void onStop() {
-		MediaScannerConnection.scanFile(this, new String[] { logFile.getAbsolutePath() }, null, null);
+//		MediaScannerConnection.scanFile(this, new String[] { logFile.getAbsolutePath() }, null, null);
 		//saveToDB();
 		
 		helper_.stop();
@@ -476,98 +399,7 @@ public class UnityTPadIOIO extends UnityPlayerNativeActivity implements IOIOLoop
 	
 	
     
-    private String readFile(String pathname) throws IOException {
-
-        File file = new File(pathname);
-        StringBuilder fileContents = new StringBuilder((int)file.length());
-        Scanner scanner = new Scanner(file);
-        String lineSeparator = System.getProperty("line.separator");
-
-        try {
-            while(scanner.hasNextLine()) {        
-                fileContents.append(scanner.nextLine() + lineSeparator);
-            }
-            return fileContents.toString();
-        } finally {
-            scanner.close();
-        }
-    }
-	
-	
-	
-	public File createFile() {
-
-		String file_path = Environment.getExternalStorageDirectory().getPath() + "/logFiles";
-
-		File saveFile = new File(file_path);
-
-		if (!saveFile.exists()) {
-			saveFile.mkdirs();
-		}
-
-		 Date date = new Date();
-		 SimpleDateFormat sdf = new SimpleDateFormat("yy.MM.dd. h:mm:ss:SSS a");
-		 String formattedDate = sdf.format(date);
-
-		int stringId = this.getApplicationInfo().labelRes;
-		String appName = this.getString(stringId);
-
-		saveFile = new File(file_path, formattedDate + " " + appName + ".txt");
-	
-		try {
-			fw = new FileWriter(saveFile, true);
-			// fw.write("File Start\r\n");
-			fw.flush();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-
-		}
-
-		
-		return saveFile;
-	}
-	
-	
-	public void writeToLog(String msg) {
-		
-		try {
-			Log.i("Logging", timestamp() + "," + msg + "," + gameState + ",,");
-			fw = new FileWriter(logFile, true);
-			fw.write(timestamp() + "," + msg + "," + gameState + ",," +"\r\n");
-			fw.flush();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-
-		}
-	}
-
-	public void writeToLog(String msg, String xy) {
-		
-		try {
-			Log.i("Logging", timestamp() + "," + msg + "," + gameState + "," + xy);
-			fw = new FileWriter(logFile, true);
-			fw.write(timestamp() + "," + msg + "," + gameState + "," + xy + "\r\n");
-			fw.flush();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-
-		}
-	}
-	
-	public String timestamp() {
-		long now = System.currentTimeMillis();
-		return Long.toString(now - starttime);
-	}
-	
-	public void zeroTime() {
-		starttime = System.currentTimeMillis();
-	}
+    
 	
 }
 
